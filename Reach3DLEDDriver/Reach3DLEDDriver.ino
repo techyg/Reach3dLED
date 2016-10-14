@@ -38,18 +38,14 @@ int parseTemp(String temperatureString)
   //Expected format 1: T:210.7 E:0 W:?
   int tloc=0;
   tloc = temperatureString.indexOf("T:"); 
-  if (tloc > 0)
-  {
-      if (IsNumeric(temperatureString.substring(tloc+2, temperatureString.indexOf("."))))
-      {  
-        return(temperatureString.substring(tloc+2, temperatureString.indexOf(".")).toInt());
-      }
-  }
-  else
-  {
-    return (0);
-  }
-  
+    if (IsNumeric(temperatureString.substring(tloc+2, temperatureString.indexOf("."))))
+    {  
+      return(temperatureString.substring(tloc+2, temperatureString.indexOf(".")).toInt());
+    }
+    else
+    {
+      return (0);
+    } 
 }
 
 
@@ -63,9 +59,45 @@ int parseTemp(String temperatureString)
  } 
 
 
+void setAll(byte red, byte green, byte blue) {
+  for(int i = 0; i < NEOPIXEL_SIZE; i++ ) {
+    setPixel(i, red, green, blue); 
+  }
+  ring.show(); 
+}
+
+
+void setPixel(int Pixel, byte red, byte green, byte blue) {
+   // NeoPixel
+   ring.setPixelColor(Pixel, ring.Color(red, green, blue));
+}
+
+void Strobe(byte red, byte green, byte blue, int StrobeCount, int FlashDelay, int EndPause){
+  ring.setBrightness(50);
+  for(int j = 0; j < StrobeCount; j++) {
+    setAll(red,green,blue);
+    ring.show(); 
+    delay(FlashDelay);
+    setAll(0,0,0);
+    ring.show(); 
+    delay(FlashDelay);
+   }
+   ring.setBrightness(25);
+   ring.show(); 
+}
 void SetColors(String output)
 {
 
+
+  //If .gco is received over serial, the printer is enquing a gcode file
+  //(M23- print from SD; M32 - print from SD file)
+  //http://reprap.org/wiki/G-code#M23:_Select_SD_file
+  if (output.indexOf(".gco")>0)
+  {
+    Strobe(0xff, 0x77, 0x00, 10, 100, 7000);
+    Serial.println("strobe");
+  }
+  
   int Temp = parseTemp(output);
 
   Serial.println(Temp);
@@ -84,15 +116,15 @@ void SetColors(String output)
     }
    else if (Temp > 100 && Temp <= 150)
     {
-      colorWipe(ring.Color(0, 64, 0), 100); // Full Green
+      colorWipe(ring.Color(64, 64, 0), 100); // Yellow
     }
    else if (Temp > 150 && Temp <= 200)
     {
-     colorWipe(ring.Color(64, 64, 0), 100); // Yellow
+     colorWipe(ring.Color(64, 0, 0), 100); // Yellow
     }
-   else if (Temp > 200 && Temp <= 250)
+   else if (Temp > 200 && Temp <= 300)  //should be the color when printing
     {
-      colorWipe(ring.Color(64, 0, 0), 100); // Red
+      colorWipe(ring.Color(64, 64, 64), 100); // White
     }
 }
 
